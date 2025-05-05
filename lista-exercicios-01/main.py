@@ -35,6 +35,26 @@ class ListADT(ABC):
         """Retorna o tamanho da lista"""
         ...
 
+    @abstractmethod
+    def remove_all(self, item):
+        """Remove todas as ocorrências de <item>."""
+        ...
+
+    @abstractmethod
+    def remove_at(self, index):
+        """Remove o item da posição <index>."""
+        ...
+
+    @abstractmethod
+    def append(self, item):
+        """Adiciona <item> no fim da lista."""
+        ...
+
+    @abstractmethod
+    def replace(self, index, item):
+        """Substitui o elemento da posição <index> por <item>."""
+        ...
+
 
 class Node:
 
@@ -168,7 +188,37 @@ class LinkedList(ListADT):
             result = True
         return result
 
+    def remove_all(self, item):
+        while self.index(item) is not None:
+            self.remove(item)
 
+    def remove_at(self, index):
+        if self.empty() or index < 0 or index >= self._length:
+            return
+        aux = self._head
+        if index == 0:
+            self._head = aux.get_next()
+            if not self._head:
+                self._tail = None
+        else:
+            prev = None
+            for _ in range(index):
+                prev = aux
+                aux = aux.get_next()
+            prev.set_next(aux.get_next())
+            if aux == self._tail:
+                self._tail = prev
+        self._length -= 1
+
+    def append(self, item):
+        self.insert(self._length, item)
+
+    def replace(self, index, item):
+        if 0 <= index < self._length:
+            aux = self._head
+            for _ in range(index):
+                aux = aux.get_next()
+            aux.set_element(item)
 
     def __str__(self):
         if not self.empty():
@@ -279,6 +329,31 @@ class DoublyLinkedList(ListADT):
     def empty(self):
         return self._length == 0
 
+    def remove_all(self, item):
+        while self.index(item) is not None:
+            self.remove(item)
+
+    def remove_at(self, index):
+        if index < 0 or index >= self._length:
+            return
+        node = self._header._next
+        for _ in range(index):
+            node = node._next
+        node._prev._next = node._next
+        node._next._prev = node._prev
+        self._length -= 1
+
+    def append(self, item):
+        self.insert(self._length, item)
+
+    def replace(self, index, item):
+        if index < 0 or index >= self._length:
+            return
+        node = self._header._next
+        for _ in range(index):
+            node = node._next
+        node._elem = item
+
     def __str__(self):
         if not self.empty():
             result = ''
@@ -292,8 +367,16 @@ class DoublyLinkedList(ListADT):
             return '||'
 
 
+class NoDupsList(LinkedList):
+    def insert(self, index, elem):
+        if self.count(elem) > 0:
+            raise ValueError(f'O elemento "{elem}" já existe na lista. Duplicatas não são permitidas.')
+        super().insert(index, elem)
+
+
 if __name__ == '__main__':
-    print('Linked List')
+    # Linked List
+    print('----- Linked List  -----')
     lista = LinkedList()
     print(lista)
 
@@ -339,10 +422,13 @@ if __name__ == '__main__':
 
     lista.remove(3.14)
     print(lista)
-    print('-----------------------------')
-    print()
-    print('-----------------------------')
-    print('Doubly Linked List')
+
+    print('Tamanho da lista (LinkedList):', lista.length())
+
+    print('---------------------------------------\n')
+
+    # Doubly Linked List
+    print('----- Doubly Linked List -----')
     lista = DoublyLinkedList()
     lista.insert(0, 0)
     print(lista)
@@ -362,3 +448,45 @@ if __name__ == '__main__':
     print(lista.count(1))
     lista.remove(5)
     print(lista)
+
+    print('Tamanho da lista (DoublyLinkedList):', lista.length())
+
+    print('---------------------------------------\n')
+
+    # Métodos adicionais
+    print('----- Testando métodos adicionais -----')
+    lista.append('fim')
+    print(lista)
+    lista.replace(0, 'inicio')
+    print(lista)
+    lista.remove_at(1)
+    print(lista)
+    lista.remove_all(1)
+    print(lista)
+
+    print(f'---------------------------------------\n')
+
+    # NoDupsList
+    print('----- NoDupsList -----')
+    nodups = NoDupsList()
+    print(nodups)
+
+    nodups.insert(0, 'a')
+    nodups.insert(1, 'b')
+    nodups.insert(2, 'c')
+    print(nodups)
+
+    print('Tentando inserir duplicata...')
+    try:
+        nodups.insert(1, 'a')
+    except ValueError as e:
+        print('Erro:', e)
+
+    print('Lista final:')
+    print(nodups)
+
+    print('Tamanho da lista (NoDupsList):', nodups.length())
+
+    print('\n--------------------------------------------------------')
+    print('----- usei a LinkedList como herança em NoDupsList -----')
+    print('--------------------------------------------------------')
